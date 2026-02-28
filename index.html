@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales Intelligence Core</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #000000;
+        color: #ffffff;
+        overflow-x: hidden;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #000000; 
+        border-left: 1px solid #333;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #ffffff; 
+        border: 2px solid #000000;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cccccc; 
+      }
+
+      /* --- Ambient Glow Background Effects --- */
+      
+      /* Large blurred orbs */
+      .glow-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.4;
+        z-index: 0;
+        animation: float-blob 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes float-blob {
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        100% {
+          transform: translate(50px, -50px) scale(1.2);
+        }
+      }
+
+      /* Light Wave Line Animation */
+      .light-wave {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 10px rgba(0, 225, 255, 0.5));
+        animation: wave-dash 10s linear infinite, wave-float 8s ease-in-out infinite alternate;
+      }
+
+      @keyframes wave-float {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(20px); }
+      }
+
+      /* --- End Background Effects --- */
+
+      /* Text Animations */
+      @keyframes reveal-text {
+        0% { transform: translateY(50px); opacity: 0; clip-path: inset(0 0 100% 0); }
+        100% { transform: translateY(0); opacity: 1; clip-path: inset(0 0 0 0); }
+      }
+      
+      .animate-reveal {
+        animation: reveal-text 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes glitch {
+        0% { transform: translate(0) }
+        20% { transform: translate(-2px, 2px) }
+        40% { transform: translate(-2px, -2px) }
+        60% { transform: translate(2px, 2px) }
+        80% { transform: translate(2px, -2px) }
+        100% { transform: translate(0) }
+      }
+
+      .hover-glitch:hover {
+        animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+      }
+
+      /* Blue Neon Box Effect - Matching Reference */
+      .neon-blue-box {
+        position: relative;
+        border: 3px solid #00e1ff; /* Cyan/Blue core */
+        box-shadow: 
+          0 0 10px #00e1ff, 
+          0 0 20px #00e1ff, 
+          inset 0 0 10px #00e1ff;
+        animation: blue-neon-pulse 3s infinite alternate;
+        background: rgba(0, 0, 0, 0.6); /* Slightly darker backing for text pop */
+        backdrop-filter: blur(5px);
+      }
+
+      .neon-blue-box::before {
+        content: '';
+        position: absolute;
+        top: -3px; left: 20%; right: 20%;
+        height: 3px; 
+        background: #000; 
+        z-index: 10;
+      }
+      .neon-blue-box::after {
+        content: '';
+        position: absolute;
+        bottom: -3px; left: 20%; right: 20%;
+        height: 3px; 
+        background: #000; 
+        z-index: 10;
+      }
+
+      @keyframes blue-neon-pulse {
+        0%, 100% {
+          border-color: #00e1ff;
+          box-shadow: 
+            0 0 10px #00e1ff, 
+            0 0 20px #00e1ff, 
+            inset 0 0 5px rgba(0, 225, 255, 0.5);
+        }
+        50% {
+          border-color: #00ffff;
+          box-shadow: 
+            0 0 15px #00ffff, 
+            0 0 30px #00ffff, 
+            inset 0 0 10px rgba(0, 255, 255, 0.6);
+        }
+      }
+
+      /* Pure White Text inside the box */
+      .neon-inner-text {
+        color: #ffffff;
+        text-shadow: 0 0 5px rgba(255,255,255,0.5);
+      }
+
+      @keyframes pulse-slow {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.6; }
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 4s ease-in-out infinite;
+      }
+      
+      /* Scanner Animation for Uploaded Images */
+      @keyframes scan-vertical {
+        0% { top: -10%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 110%; opacity: 0; }
+      }
+      .animate-scan {
+        animation: scan-vertical 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+
+      /* Print Styles for PDF Export */
+      @media print {
+        body {
+          background-color: white;
+          color: black;
+        }
+        .no-print, .bg-shape, .bg-grid, .float-symbol, .neon-blue-box, .glow-blob, .light-wave, .animate-scan {
+          display: none !important; 
+          box-shadow: none !important;
+          border: none !important;
+        }
+        .print-content {
+          color: black !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+        h1, h2, h3, p, li, strong, code {
+          color: black !important;
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="sales-intelligence-core-root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
