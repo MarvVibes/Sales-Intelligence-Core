@@ -29,7 +29,10 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     }).catch(err => {
-      console.warn("Supabase session check failed. This is expected if keys are missing.", err);
+      console.warn("Supabase session check failed.", err);
+      if (err.message?.includes('fetch')) {
+        setError("Network Error: Could not connect to the database. Please check your connection.");
+      }
     });
 
     // Listen for auth changes

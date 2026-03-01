@@ -29,7 +29,7 @@ export const generateStrategy = async (text: string, imageFile: File | undefined
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: { parts },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -41,8 +41,15 @@ export const generateStrategy = async (text: string, imageFile: File | undefined
   } catch (error: any) {
     console.error("Gemini API Error:", error);
     const msg = error.message || '';
+    
+    if (msg.includes('fetch') || msg.includes('NetworkError')) {
+      throw new Error("Network Error: The browser failed to connect to Google's AI servers. Please check your internet connection or disable any ad-blockers that might be blocking 'generativelanguage.googleapis.com'.");
+    }
+    
     if (msg.includes('429') || msg.includes('quota') || msg.includes('exhausted')) {
       throw new Error("The service is currently experiencing high traffic. Please try again later.");
+    } else if (msg.includes('suspended')) {
+      throw new Error("CRITICAL: Your Gemini API Key has been SUSPENDED by Google. Please generate a NEW key at ai.google.dev and update your Netlify settings.");
     } else if (msg.includes('403') || msg.includes('API key') || msg.includes('permission')) {
       throw new Error("Service authentication failed. The platform administrator needs to verify the configuration.");
     } else {
@@ -101,7 +108,7 @@ export const generateSocialPosts = async (context: string) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: { responseMimeType: "application/json" }
     });
