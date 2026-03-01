@@ -4,12 +4,13 @@ import { SYSTEM_INSTRUCTION } from '../types';
 
 export const generateStrategy = async (text: string, imageFile: File | undefined): Promise<string> => {
   try {
-    const apiKey = (typeof process !== 'undefined' && process.env ? (process.env.API_KEY || process.env.GEMINI_API_KEY) : null) || 
-                   (import.meta.env.VITE_GEMINI_API_KEY as string) || 
-                   (import.meta.env.VITE_API_KEY as string);
+    // Priority: 1. Vite Env (Netlify/Prod), 2. Process Env (Dev/Local)
+    const apiKey = (import.meta.env.VITE_GEMINI_API_KEY as string) || 
+                   (import.meta.env.VITE_API_KEY as string) ||
+                   (typeof process !== 'undefined' && process.env ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : null);
                    
     if (!apiKey) {
-      throw new Error("Gemini API Key is missing. Please click 'Setup Key' in the top header to configure it.");
+      throw new Error("CRITICAL: API Key not found. Please ensure 'VITE_GEMINI_API_KEY' is added to your Netlify Environment Variables and redeploy.");
     }
     const ai = new GoogleGenAI({ apiKey });
     
@@ -52,12 +53,12 @@ export const generateStrategy = async (text: string, imageFile: File | undefined
 
 export const generateSocialPosts = async (context: string) => {
   try {
-    const apiKey = (typeof process !== 'undefined' && process.env ? (process.env.API_KEY || process.env.GEMINI_API_KEY) : null) || 
-                   (import.meta.env.VITE_GEMINI_API_KEY as string) || 
-                   (import.meta.env.VITE_API_KEY as string);
+    const apiKey = (import.meta.env.VITE_GEMINI_API_KEY as string) || 
+                   (import.meta.env.VITE_API_KEY as string) ||
+                   (typeof process !== 'undefined' && process.env ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : null);
 
     if (!apiKey) {
-      throw new Error("Gemini API Key is missing. Please click 'Setup Key' in the top header to configure it.");
+      throw new Error("CRITICAL: API Key not found. Please ensure 'VITE_GEMINI_API_KEY' is added to your Netlify Environment Variables and redeploy.");
     }
     const ai = new GoogleGenAI({ apiKey });
     

@@ -195,19 +195,6 @@ const App: React.FC = () => {
           {/* Actions Area */}
           <div className="flex items-center gap-2 md:gap-3">
             
-            <button 
-              onClick={async () => {
-                if (window.aistudio && window.aistudio.openSelectKey) {
-                  await window.aistudio.openSelectKey();
-                } else {
-                  alert("API Key configuration is only available in the AI Studio environment.");
-                }
-              }}
-              className="px-3 py-1.5 md:px-6 md:py-3 bg-cyan-400/10 border border-cyan-400 text-cyan-400 text-[9px] md:text-xs font-black uppercase tracking-widest hover:bg-cyan-400 hover:text-black transition-all rounded-full shadow-[0_0_10px_rgba(0,225,255,0.2)]"
-            >
-              <span className="hidden sm:inline">Setup</span> Key
-            </button>
-
             {/* History Toggle */}
             <button 
               onClick={() => setIsHistoryOpen(true)}

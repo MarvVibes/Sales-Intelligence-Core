@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        'process.env': env
+        'process.env': { ...process.env, ...env }
       },
       resolve: {
         alias: {

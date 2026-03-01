@@ -109,25 +109,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           >
             {isLogin ? 'Need an account? Sign up' : 'Already have an account? Login'}
           </button>
-
-          <div className="pt-4 border-t border-white/10">
-            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Environment Configuration</p>
-            <button 
-              onClick={async () => {
-                if (window.aistudio && window.aistudio.openSelectKey) {
-                  await window.aistudio.openSelectKey();
-                } else {
-                  alert("API Key configuration is only available in the AI Studio environment.");
-                }
-              }}
-              className="w-full py-3 border border-cyan-400/30 text-cyan-400 text-xs font-bold uppercase tracking-widest hover:bg-cyan-400 hover:text-black transition-all"
-            >
-              Setup Gemini API Key
-            </button>
-            <p className="text-[9px] text-white/20 mt-2 leading-relaxed">
-              Required for AI analysis. You can use your own key from <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-cyan-400">Google AI Studio</a>.
-            </p>
-          </div>
         </div>
       </div>
     </div>
