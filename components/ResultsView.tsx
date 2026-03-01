@@ -65,6 +65,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({ content, onReset, onSocialSha
     window.print();
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(cleanContent);
+    alert("Strategy copied to clipboard!");
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto animate-fade-in pb-24 relative">
       
@@ -86,6 +91,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({ content, onReset, onSocialSha
           >
             <Zap size={18} fill="currentColor" />
             <span>Launch Social</span>
+          </button>
+          <button 
+            onClick={handleCopy}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white/10 border border-white/10 text-white hover:bg-white hover:text-black transition-all text-sm font-bold uppercase tracking-wide rounded-lg backdrop-blur-sm"
+          >
+            <Share2 size={18} />
+            <span className="hidden sm:inline">Copy</span>
           </button>
           <button 
             onClick={handleExport}

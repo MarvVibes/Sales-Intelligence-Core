@@ -11,10 +11,10 @@ export interface AnalysisResult {
 
 export interface HistoryItem {
   id: string;
-  timestamp: number;
+  created_at: string;
   preview: string;
-  fullContent: string;
-  type: 'strategy';
+  full_content: string;
+  type: string;
 }
 
 export enum AppMode {
@@ -23,6 +23,15 @@ export enum AppMode {
   RESULTS = 'RESULTS',
   SOCIAL_GENERATOR = 'SOCIAL_GENERATOR',
   ERROR = 'ERROR'
+}
+
+declare global {
+  interface Window {
+    aistudio?: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
+  }
 }
 
 export const SYSTEM_INSTRUCTION = `

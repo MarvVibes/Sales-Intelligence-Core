@@ -2,39 +2,54 @@
 import React, { useEffect, useState } from 'react';
 import { X, Clock, Trash2, ChevronRight, FileText } from 'lucide-react';
 import { HistoryItem } from '../types';
+import { supabase } from '../services/supabase';
 
 interface HistorySidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onLoadItem: (content: string) => void;
+  user: any;
 }
 
-const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoadItem }) => {
+const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoadItem, user }) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      const stored = localStorage.getItem('sic_history');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          // Sort by timestamp desc
-          setHistory(parsed.sort((a: HistoryItem, b: HistoryItem) => b.timestamp - a.timestamp));
-        } catch (e) {
-          console.error("Failed to load history", e);
-        }
-      }
+    if (isOpen && user) {
+      fetchHistory();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const updated = history.filter(h => h.id !== id);
-    setHistory(updated);
-    localStorage.setItem('sic_history', JSON.stringify(updated));
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('strategies')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      if (data) setHistory(data as HistoryItem[]);
+    } catch (e) {
+      console.error("Failed to load history", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const formatTime = (ts: number) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await supabase.from('strategies').delete().eq('id', id);
+      setHistory(history.filter(h => h.id !== id));
+    } catch (e) {
+      console.error("Failed to delete history item", e);
+    }
+  };
+
+  const formatTime = (ts: string) => {
     return new Date(ts).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -69,7 +84,16 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoad
 
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-          {history.length === 0 ? (
+          {!user ? (
+            <div className="flex flex-col items-center justify-center h-64 text-white/30">
+              <Clock size={48} className="mb-4 opacity-20" />
+              <p className="text-sm font-mono uppercase text-center">Sign in to view<br/>your saved strategies</p>
+            </div>
+          ) : loading ? (
+            <div className="flex flex-col items-center justify-center h-64 text-white/30">
+              <p className="text-sm font-mono uppercase animate-pulse">Loading Core Memory...</p>
+            </div>
+          ) : history.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-white/30">
               <Clock size={48} className="mb-4 opacity-20" />
               <p className="text-sm font-mono uppercase">No saved strategies</p>
@@ -78,7 +102,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoad
             history.map((item) => (
               <div 
                 key={item.id}
-                onClick={() => { onLoadItem(item.fullContent); onClose(); }}
+                onClick={() => { onLoadItem(item.full_content); onClose(); }}
                 className="group relative p-4 bg-white/5 border border-white/5 hover:border-cyan-400/50 hover:bg-white/10 rounded-xl cursor-pointer transition-all duration-200 overflow-hidden"
               >
                 <div className="flex justify-between items-start mb-2">
@@ -86,7 +110,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoad
                     <FileText size={12} />
                     <span>Strategy</span>
                   </div>
-                  <span className="text-[10px] font-mono text-white/40">{formatTime(item.timestamp)}</span>
+                  <span className="text-[10px] font-mono text-white/40">{formatTime(item.created_at)}</span>
                 </div>
                 
                 <p className="text-sm text-white/80 line-clamp-2 font-light leading-relaxed mb-3">
@@ -112,7 +136,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, onLoad
         {/* Footer */}
         <div className="p-4 border-t border-white/10 bg-black text-center">
           <p className="text-[10px] text-white/30 font-mono uppercase">
-            History is stored locally on your device
+            {user ? 'History is securely synced to the cloud' : 'Authentication required for cloud sync'}
           </p>
         </div>
       </div>

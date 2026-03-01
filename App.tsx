@@ -6,7 +6,9 @@ import ResultsView from './components/ResultsView';
 import SocialMediaView from './components/SocialMediaView';
 import LoadingState from './components/LoadingState';
 import HistorySidebar from './components/HistorySidebar';
+import AuthModal from './components/AuthModal';
 import { generateStrategy } from './services/gemini';
+import { supabase } from './services/supabase';
 import { AppMode, HistoryItem } from './types';
 
 const App: React.FC = () => {
@@ -15,28 +17,45 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
 
+  // Auth State
+  const [user, setUser] = useState<any>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   // History State
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  const saveToHistory = (content: string) => {
-    try {
-      const newItem: HistoryItem = {
-        id: Date.now().toString(),
-        timestamp: Date.now(),
-        preview: content.replace(/[*#]/g, '').substring(0, 100),
-        fullContent: content,
-        type: 'strategy'
-      };
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    }).catch(err => {
+      console.warn("Supabase session check failed. This is expected if keys are missing.", err);
+    });
 
-      const stored = localStorage.getItem('sic_history');
-      let history: HistoryItem[] = stored ? JSON.parse(stored) : [];
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const saveToHistory = async (content: string) => {
+    if (!user) return; // Only save if logged in
+
+    try {
+      const preview = content.replace(/[*#]/g, '').substring(0, 100);
       
-      // Add to front, limit to 20 items
-      history = [newItem, ...history].slice(0, 20);
-      
-      localStorage.setItem('sic_history', JSON.stringify(history));
+      const { error } = await supabase.from('strategies').insert([{
+        user_id: user.id,
+        preview,
+        full_content: content,
+        type: 'strategy'
+      }]);
+
+      if (error) throw error;
     } catch (e) {
-      console.error("Failed to save history", e);
+      console.error("Failed to save history to Supabase", e);
     }
   };
 
@@ -82,10 +101,16 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-cyan-500 selection:text-black flex flex-col overflow-hidden relative font-sans">
 
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
+
       <HistorySidebar 
         isOpen={isHistoryOpen} 
         onClose={() => setIsHistoryOpen(false)} 
-        onLoadItem={handleLoadFromHistory} 
+        onLoadItem={handleLoadFromHistory}
+        user={user}
       />
 
       {/* --- Ambient Background --- */}
@@ -157,27 +182,57 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
           {/* Logo Area */}
-          <div className="flex items-center gap-4 group cursor-pointer hover-glitch" onClick={handleReset}>
+          <div className="flex items-center gap-2 md:gap-4 group cursor-pointer hover-glitch" onClick={handleReset}>
             <div className="hidden md:block p-2 bg-white text-black rounded-none transform transition-transform group-hover:rotate-90 duration-500">
               <BrainCircuit size={24} strokeWidth={2.5} />
             </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase leading-none">Sales Intelligence Core</h1>
-              <span className="text-[10px] text-white/40 font-mono tracking-widest hidden md:block">AI STRATEGIC ENGINE V2.5</span>
+            <div className="flex flex-col">
+              <h1 className="text-sm md:text-xl font-black tracking-tighter uppercase leading-none">Sales Intelligence Core</h1>
+              <span className="text-[8px] md:text-[10px] text-white/40 font-mono tracking-widest">AI STRATEGIC ENGINE V2.5</span>
             </div>
           </div>
           
           {/* Actions Area */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             
+            <button 
+              onClick={async () => {
+                if (window.aistudio && window.aistudio.openSelectKey) {
+                  await window.aistudio.openSelectKey();
+                } else {
+                  alert("API Key configuration is only available in the AI Studio environment.");
+                }
+              }}
+              className="px-3 py-1.5 md:px-6 md:py-3 bg-cyan-400/10 border border-cyan-400 text-cyan-400 text-[9px] md:text-xs font-black uppercase tracking-widest hover:bg-cyan-400 hover:text-black transition-all rounded-full shadow-[0_0_10px_rgba(0,225,255,0.2)]"
+            >
+              <span className="hidden sm:inline">Setup</span> Key
+            </button>
+
             {/* History Toggle */}
             <button 
               onClick={() => setIsHistoryOpen(true)}
-              className="p-3 rounded-full bg-white/5 hover:bg-white/20 text-white/70 hover:text-white transition-all border border-white/10 hover:border-white/50 group"
+              className="p-2 md:p-3 rounded-full bg-white/5 hover:bg-white/20 text-white/70 hover:text-white transition-all border border-white/10 hover:border-white/50 group"
               title="View History"
             >
-              <Clock size={20} className="group-hover:scale-110 transition-transform" />
+              <Clock size={18} className="group-hover:scale-110 transition-transform" />
             </button>
+            
+            {/* Auth Button */}
+            {user ? (
+              <button 
+                onClick={() => supabase.auth.signOut()} 
+                className="px-3 py-1.5 md:px-6 md:py-3 border border-white/20 text-white text-[9px] md:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors rounded-full"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="px-3 py-1.5 md:px-6 md:py-3 bg-cyan-400 text-black text-[9px] md:text-xs font-black uppercase tracking-widest hover:bg-cyan-300 transition-colors rounded-full shadow-[0_0_15px_rgba(0,225,255,0.4)]"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </header>
